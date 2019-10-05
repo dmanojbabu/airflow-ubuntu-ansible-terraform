@@ -1,8 +1,8 @@
-TF_VAR_aws_profile := MY_PROFILE
+TF_VAR_aws_profile := sriram
 TF_VAR_pub_key := $(shell cat ./airflow-key.pub)
-TF_VAR_aws_region := us-east-1
-TF_VAR_aws_az := us-east-1d
-TF_VAR_ami := ami-845367ff
+TF_VAR_aws_region := us-east-2
+TF_VAR_aws_az := us-east-2a
+TF_VAR_ami := ami-0c929bde1796e1484
 ANSIBLE_ROLES_PATH := ./ansible/roles
 ANSIBLE_CONFIG := ./ansible/ansible.cfg
 
@@ -68,7 +68,7 @@ teardown: destroy
 ssh:
 	ssh -o UserKnownHostsFile=/dev/null \
 		-o StrictHostKeyChecking=no \
-	 	-i ./airflow-key -l ubuntu \
+	 	-i ./airflow-key.pem -l ubuntu \
 	 	`terraform output -json|jq -r ".ip.value"`
 
 # Proxies for invoking ansible against the host created by terraform.
@@ -78,7 +78,7 @@ ssh:
 # `ansible/airflow.yml`.  To provision everything from scratch,
 # use `make provision-main` or simply `make provision`
 provision-%: require-jq require-tf require-ansible
-	ansible-playbook \
+	ansible-playbook -vvv \
 	 -e @ansible/vars.yml \
 	 -i `terraform output -json|jq -r ".ip.value"`, \
 	 ansible/$*.yml
